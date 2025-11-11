@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Sameer Finance</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;background-color:#f0f2f5;color:#333}.page-container{max-width:1200px;margin:0 auto;padding:15px}.header{background-color:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}.title{text-align:center;font-size:2.5em;font-weight:700;color:#1a5276;text-shadow:2px 2px 0 #bdc3c7,3px 3px 0 #7f8c8d;flex-grow:1}.view{display:none;background-color:#fff;padding:25px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1);animation:fadeIn .5s}.view.active{display:block}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.view h3{margin-top:0;color:#2c3e50;border-bottom:2px solid #3498db;padding-bottom:10px}
+        #menu-view ul{list-style-type:none;padding:0}
+        #menu-view ul li{
+            padding: 20px;
+            color: #fff;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            background-color: #3498db; 
+            box-shadow: 0 4px #2980b9; 
+            transition: all 0.2s ease-in-out;
+        }
+        #menu-view ul li:hover{ transform: translateY(-2px); box-shadow: 0 6px #2980b9; }
+        #menu-view ul li:active{ transform: translateY(2px); box-shadow: 0 2px #2980b9; }
+        .form-group{margin-bottom:15px}.form-group label{display:block;margin-bottom:5px;font-weight:700}.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;font-size:1em}.btn{display:block;width:100%;padding:12px 15px;border:none;border-radius:4px;cursor:pointer;font-size:1.1em;margin-top:10px;box-sizing:border-box}.btn-primary{background-color:#3498db;color:#fff}.btn-secondary{background-color:#95a5a6;color:#fff}.action-buttons .btn{display:inline-block;width:auto;padding:8px 12px;font-size:.9em;margin-right:5px}.btn-danger{background-color:#e74c3c;color:#fff}.btn-edit{background-color:#f39c12;color:#fff}.table-container{overflow-x:auto}.search-box{margin-bottom:15px;width:100%}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:12px;border:1px solid #ddd;text-align:left}th{background-color:#ecf0f1;font-weight:700}tr:nth-child(even){background-color:#f9f9f9}
+        #adminProfileIcon{font-size:2em;cursor:pointer;user-select:none;color:#2c3e50}
+        .group-box-container .list-item { padding: 20px; background-color: #eaf2f8; border: 1px solid #d4e6f1; margin-bottom: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.2em; text-align: center; transition: background-color .3s, transform 0.2s; }
+        .group-box-container .list-item:hover { background-color: #d4e6f1; transform: translateY(-3px); }
+        .details-sub-view, .finance-sub-view, .form-container, .month-list-view, .month-details-view { display: none; }
+        .details-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;}
+        .btn-add-new { background-color: #27ae60; color: white; width: auto; margin-bottom: 20px; font-weight: bold;}
+        .btn-add-new:before { content: '+ '; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="header">
+            <h1 class="title">SAMEER FINANCE</h1>
+            <div id="adminProfileIcon">👤</div>
+        </div>
+        
+        <div id="menu-view" class="view">
+            <h3>Admin Menu</h3>
+            <ul id="menu">
+                <li data-view="registration">REGISTRATION</li>
+                <li data-view="committee-group">COMMITTEE GROUP</li>
+                <li data-view="members">MEMBERS</li>
+                <li data-view="committee-payment">COMMITTEE PAYMENT</li>
+                <li data-view="pay-request">PAY REQUEST</li>
+                <li data-view="add-notice">ADD NOTICE</li>
+                <li data-view="finance-data">FINANCE DATA</li>
+            </ul>
+        </div>
+
+        <div id="profile-view" class="view">
+            <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-bottom: 15px;">BACK TO MENU</button>
+            <h3>Profile</h3>
+            <h4>View Data (Sameer Finance)</h4>
+            <div id="lock-section"><h4>Lock Feature</h4></div>
+            <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-top: 20px;">BACK TO MENU</button>
+        </div>
+
+        <div id="registration" class="view">
+            <div class="list-container">
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-bottom: 15px;">BACK TO MENU</button>
+                <button type="button" class="btn btn-add-new" onclick="showContent('registration', 'form-container')">Add New Registration</button>
+                <hr>
+                <h3>Registered Members</h3>
+                <input type="text" id="regSearch" class="form-group search-box" placeholder="Search...">
+                <div class="table-container">
+                    <table id="registrationTable">
+                        <thead><tr><th>NAME</th><th>ID NO.</th><th>MOBILE NO.</th><th>PASSWORD</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-top: 15px;">BACK TO MENU</button>
+            </div>
+            <div class="form-container">
+                <h3>Registration Form</h3>
+                <form id="registrationForm">
+                    <input type="hidden" id="regEditId">
+                    <div class="form-group"><label for="name">NAME</label><input type="text" id="name" required></div>
+                    <div class="form-group"><label for="idNo">ID NO.</label><input type="text" id="idNo" required></div>
+                    <div class="form-group"><label for="mobileNo">MOBILE NO.</label><input type="tel" id="mobileNo" required minlength="10" maxlength="10" pattern="\d{10}" title="Please enter a 10-digit mobile number."></div>
+                    <div class="form-group"><label for="password">PASSWORD</label><input type="password" id="password" required></div>
+                    <div class="form-group"><label for="confirmPassword">CONFIRM PASSWORD</label><input type="password" id="confirmPassword" required></div>
+                    <button type="submit" class="btn btn-primary">SAVE REGISTRATION</button>
+                    <button type="button" class="btn btn-secondary" style="width:auto;" onclick="showContent('registration', 'list-container')">BACK TO LIST</button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="committee-group" class="view">
+            <div class="list-container">
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-bottom: 15px;">BACK TO MENU</button>
+                <button type="button" class="btn btn-add-new" onclick="showContent('committee-group', 'form-container')">Add New Group</button>
+                <hr>
+                <h3>Committee Groups</h3>
+                <input type="text" id="groupSearch" class="form-group search-box" placeholder="Search...">
+                <div class="table-container">
+                    <table id="committeeGroupTable">
+                        <thead><tr><th>NAME</th><th>MONTH</th><th>START DATE</th><th>AMOUNT</th><th>SHARE</th><th>CLOSING</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-top: 15px;">BACK TO MENU</button>
+            </div>
+            <div class="form-container">
+                <h3>Committee Group Form</h3>
+                <form id="committeeGroupForm">
+                    <input type="hidden" id="groupEditId">
+                    <div class="form-group"><label for="communityName">COMMUNITY NAME</label><input type="text" id="communityName" required></div>
+                    <div class="form-group"><label for="committeeMonth">MONTH</label><input type="number" id="committeeMonth" required></div>
+                    <div class="form-group"><label for="startDate">START DATE</label><input type="date" id="startDate" required></div>
+                    <div class="form-group"><label for="totalAmount">TOTAL AMOUNT</label><input type="number" id="totalAmount" required></div>
+                    <div class="form-group"><label for="shareValue">SHARE VALUE</label><input type="number" id="shareValue" required></div>
+                    <div class="form-group"><label for="closingDate">CLOSING DATE</label><input type="date" id="closingDate" required></div>
+                    <button type="submit" class="btn btn-primary">SAVE GROUP</button>
+                    <button type="button" class="btn btn-secondary" style="width:auto;" onclick="showContent('committee-group', 'list-container')">BACK TO LIST</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="members" class="view">
+            <div class="list-container">
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-bottom: 15px;">BACK TO MENU</button>
+                <button type="button" class="btn btn-add-new" onclick="showContent('members', 'form-container')">Add Member to Group</button>
+                <hr>
+                <h3>Group Members</h3>
+                <input type="text" id="memberSearch" class="form-group search-box" placeholder="Search by Group Name...">
+                <div id="member-group-box-container" class="group-box-container"></div>
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-top: 15px;">BACK TO MENU</button>
+            </div>
+            <div class="form-container">
+                 <h3>Add Member to Group</h3>
+                <form id="membersForm">
+                     <input type="hidden" id="memberEditId">
+                    <div class="form-group"><label for="memberName">NAME</label><select id="memberName" required></select></div>
+                    <div class="form-group"><label for="memberCommitteeGroup">COMMITTEE GROUP</label><select id="memberCommitteeGroup" required></select></div>
+                    <button type="submit" class="btn btn-primary">ADD MEMBER</button>
+                    <button type="button" class="btn btn-secondary" style="width:auto;" onclick="showContent('members', 'list-container')">BACK TO LIST</button>
+                </form>
+            </div>
+            <div class="details-sub-view">
+                <div class="details-header">
+                    <h3 id="members-details-title"></h3>
+                    <div>
+                        <button id="download-members-pdf-btn" class="btn btn-primary" style="width:auto; margin-right:10px;">Download as PDF</button>
+                        <button class="btn btn-secondary" style="width:auto;" onclick="showContent('members', 'list-container')">BACK</button>
+                    </div>
+                </div>
+                <input type="text" id="memberDetailSearch" class="form-group search-box" placeholder="Search by Name or ID No. in this group...">
+                <div id="members-details-table" class="table-container"></div>
+            </div>
+        </div>
+        
+        <div id="committee-payment" class="view">
+            <div class="list-container">
+                 <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-bottom: 15px;">BACK TO MENU</button>
+                 <button type="button" class="btn btn-add-new" onclick="showContent('committee-payment', 'form-container')">Add New Payment</button>
+                <hr>
+                <h3>Committee Payment Data</h3>
+                 <input type="text" id="receivedSearch" class="form-group search-box" placeholder="Search by Group Name...">
+                 <div id="cp-group-box-container" class="group-box-container"></div>
+                 <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-top: 15px;">BACK TO MENU</button>
+            </div>
+            <div class="form-container">
+                 <h3>Committee Payment Form</h3>
+                <form id="committeeReceivedForm">
+                    <input type="hidden" id="receivedEditId">
+                    <div class="form-group"><label for="receivedSerialNo">COMMITTEE NO. (Month No.)</label><input type="number" id="receivedSerialNo" required></div>
+                    <div class="form-group"><label for="receivedGroup">COMMITTEE GROUP</label><select id="receivedGroup" required></select></div>
+                    <div class="form-group"><label for="receivedName">NAME</label><select id="receivedName" required></select></div>
+                    <div class="form-group"><label for="committeeAmount">COMMITTEE AMOUNT</label><input type="number" id="committeeAmount" required></div>
+                    <div class="form-group"><label for="receivedAmount">RECEIVED AMOUNT</label><input type="number" id="receivedAmount" required></div>
+                    <div class="form-group"><label for="lossAmount">LOSS AMOUNT</label><input type="number" id="lossAmount" required readonly></div>
+                    <div class="form-group"><label for="receivedDate">DATE</label><input type="date" id="receivedDate" required></div>
+                    <div class="form-group"><label for="payableComplete">PAYABLE COMPLETE</label><input type="text" id="payableComplete" required></div>
+                    <div class="form-group">
+                        <label for="receivedPaymentStatus">PAYMENT STATUS</label>
+                        <select id="receivedPaymentStatus" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Completed">Completed</option>
+                            <option value="On Hold">On Hold</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">SAVE</button>
+                    <button type="button" class="btn btn-secondary" style="width:auto;" onclick="showContent('committee-payment', 'list-container')">BACK TO LIST</button>
+                </form>
+            </div>
+            <div class="month-list-view">
+                 <div class="details-header">
+                    <h3 id="cp-details-title"></h3>
+                    <button class="btn btn-secondary" style="width:auto;" onclick="showContent('committee-payment', 'list-container')">BACK</button>
+                </div>
+                <input type="text" id="cpDetailSearch" class="form-group search-box" placeholder="Search Month...">
+                <div id="cp-month-box-container" class="group-box-container"></div>
+            </div>
+             <div class="month-details-view">
+                 <div class="details-header">
+                    <h3 id="cp-month-details-title"></h3>
+                    <button class="btn btn-secondary" style="width:auto;" onclick="showCPDetailsView(currentCPGroupId, currentCPGroupName)">BACK</button>
+                </div>
+                <div id="cp-month-details-table" class="table-container"></div>
+            </div>
+        </div>
+
+        <div id="pay-request" class="view">
+             <div class="list-container">
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-bottom: 15px;">BACK TO MENU</button>
+                <button type="button" class="btn btn-add-new" onclick="showContent('pay-request', 'form-container')">Add New Request</button>
+                 <hr>
+                <h3>Payment Requests</h3>
+                 <input type="text" id="payRequestSearch" class="form-group search-box" placeholder="Search by Group Name...">
+                 <div id="pr-group-box-container" class="group-box-container"></div>
+                 <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-top: 15px;">BACK TO MENU</button>
+             </div>
+             <div class="form-container">
+                <h3>Pay Request Form</h3>
+                <form id="payRequestForm">
+                    <input type="hidden" id="payRequestEditId">
+                    <div class="form-group"><label for="payRequestSerialNo">COMMITTEE NO. (Month No.)</label><input type="number" id="payRequestSerialNo" required></div>
+                    <div class="form-group"><label for="payRequestGroup">COMMITTEE GROUP</label><select id="payRequestGroup" required></select></div>
+                    <div class="form-group"><label for="payRequestName">NAME</label><select id="payRequestName" required></select></div>
+                    <div class="form-group"><label for="payRequestShare">SHARE VALUE</label><input type="number" id="payRequestShare" required></div>
+                    <div class="form-group"><label for="paymentAmount">PAYMENT AMOUNT</label><input type="number" id="paymentAmount" required></div>
+                    <div class="form-group"><label for="benefits">BENEFITS</label><input type="text" id="benefits" required></div>
+                    <div class="form-group"><label for="requestDate">REQUEST DATE</label><input type="date" id="requestDate" required></div>
+                    <div class="form-group"><label for="dueDate">DUE DATE</label><input type="date" id="dueDate" required></div>
+                    <div class="form-group">
+                        <label for="payRequestPaymentStatus">PAYMENT STATUS</label>
+                        <select id="payRequestPaymentStatus" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="On Hold">On Hold</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">SEND REQUEST</button>
+                    <button type="button" class="btn btn-secondary" style="width:auto;" onclick="showContent('pay-request', 'list-container')">BACK TO LIST</button>
+                </form>
+             </div>
+             <div class="month-list-view">
+                <div class="details-header">
+                    <h3 id="pr-details-title"></h3>
+                    <button class="btn btn-secondary" style="width:auto;" onclick="showContent('pay-request', 'list-container')">BACK</button>
+                </div>
+                <input type="text" id="prDetailSearch" class="form-group search-box" placeholder="Search Month...">
+                <div id="pr-month-box-container" class="group-box-container"></div>
+             </div>
+             <div class="month-details-view">
+                <div class="details-header">
+                    <h3 id="pr-month-details-title"></h3>
+                    <button class="btn btn-secondary" style="width:auto;" onclick="showPRDetailsView(currentPRGroupId, currentPRGroupName)">BACK</button>
+                </div>
+                <div id="pr-month-details-table" class="table-container"></div>
+             </div>
+        </div>
+
+        <div id="add-notice" class="view">
+            <div class="list-container">
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-bottom: 15px;">BACK TO MENU</button>
+                <button type="button" class="btn btn-add-new" onclick="showContent('add-notice', 'form-container')">Add New Notice</button>
+                <hr>
+                <h3>Sent Notices</h3>
+                <div class="table-container">
+                    <table id="noticeTable">
+                        <thead><tr><th>GROUP</th><th>MESSAGE</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-top: 15px;">BACK TO MENU</button>
+            </div>
+            <div class="form-container">
+                <h3>Add Notice</h3>
+                <form id="noticeForm">
+                    <input type="hidden" id="noticeEditId">
+                    <div class="form-group"><label for="noticeGroup">COMMITTEE GROUP (Optional, 'All' for everyone)</label><select id="noticeGroup"></select></div>
+                    <div class="form-group"><label for="noticeMessage">SEND NOTES</label><textarea id="noticeMessage" rows="5" required></textarea></div>
+                    <button type="submit" class="btn btn-primary">SEND MESSAGE</button>
+                     <button type="button" class="btn btn-secondary" style="width:auto;" onclick="showContent('add-notice', 'list-container')">BACK TO LIST</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="finance-data" class="view">
+            <div id="finance-groups-view" class="finance-sub-view">
+                <button type="button" class="btn btn-secondary back-btn" style="width:auto; margin-bottom: 15px;">BACK TO MENU</button>
+                <h3>COMMITTEE GROUPS</h3>
+                <input type="text" id="financeGroupSearch" class="form-group search-box" placeholder="Search Group Name...">
+                <div id="finance-group-list" class="group-box-container"></div>
+            </div>
+            <div id="finance-members-view" class="finance-sub-view">
+                <h3 id="finance-members-title"></h3>
+                <input type="text" id="financeMemberSearch" class="form-group search-box" placeholder="Search Member in this group...">
+                <div id="finance-member-list" class="group-box-container"></div>
+                <button type="button" class="btn btn-secondary" style="width:auto; margin-top: 15px;" onclick="showFinanceGroups()">BACK</button>
+            </div>
+            <div id="finance-details-view" class="finance-sub-view">
+                <div class="details-header">
+                    <h3 id="finance-details-title"></h3>
+                    <button type="button" class="btn btn-secondary" style="width:auto;" onclick="goBackToMembers()">BACK</button>
+                </div>
+                <div id="finance-details-content"></div>
+            </div>
+        </div>
+    </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyDfvEfa92wXx4UV9q0kF9tGVuDEyM5F3hg",
+    authDomain: "sameer-finance-ff4e0.firebaseapp.com",
+    databaseURL: "https://sameer-finance-ff4e0-default-rtdb.firebaseio.com",
+    projectId: "sameer-finance-ff4e0",
+    storageBucket: "sameer-finance-ff4e0.firebasestorage.app",
+    messagingSenderId: "1092136268268",
+    appId: "1:1092136268268:web:1e05edd745b57310e9d0c9"
+};
+
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// --- NEW FIREBASE DATA HANDLING ---
+const getDb = async (key) => {
+    try {
+        const snapshot = await db.ref(key).once('value');
+        return snapshot.val() || [];
+    } catch (error) {
+        console.error("Error fetching data from Firebase:", error);
+        return [];
+    }
+};
+
+const setDb = async (key, data) => {
+    try {
+        await db.ref(key).set(data);
+    } catch (error) {
+        console.error("Error saving data to Firebase:", error);
+    }
+};
+
+// --- GLOBAL VARIABLES (Remain the same) ---
+let currentMemberGroupId, currentMemberGroupName;
+let currentCPGroupId, currentCPGroupName;
+let currentPRGroupId, currentPRGroupName;
+let currentFinanceGroupId = null;
+
+// --- UTILITY FUNCTIONS (Modified for async) ---
+function formatDate(isoDate) {
+    if (!isoDate || typeof isoDate !== 'string') return 'N/A';
+    const parts = isoDate.split('-');
+    if (parts.length !== 3) return isoDate;
+    const [year, month, day] = parts;
+    return `${day}-${month}-${year}`;
+}
+
+function showContent(mainViewId, classToShow) {
+    const mainView = document.getElementById(mainViewId);
+    if (!mainView) return;
+    
+    mainView.querySelectorAll('.list-container, .form-container, .details-sub-view, .month-list-view, .month-details-view').forEach(div => {
+        if (div) div.style.display = 'none';
+    });
+    
+    if (classToShow === 'form-container') {
+        const form = mainView.querySelector('form');
+        if (form) form.reset();
+        const hiddenInput = mainView.querySelector('input[type="hidden"]');
+        if (hiddenInput) hiddenInput.value = '';
+    }
+    
+    const viewToShow = mainView.querySelector('.' + classToShow);
+    if (viewToShow) viewToShow.style.display = 'block';
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const views = document.querySelectorAll('.view');
+    const menuItems = document.querySelectorAll('#menu li[data-view]');
+    const backButtons = document.querySelectorAll('.back-btn');
+    const adminProfileIcon = document.getElementById('adminProfileIcon');
+
+    async function showView(viewId) {
+        views.forEach(view => view.classList.remove('active'));
+        const activeView = document.getElementById(viewId);
+        if (activeView) {
+            activeView.classList.add('active');
+            showContent(viewId, 'list-container');
+
+            // Populate necessary data when a view is shown
+            if (viewId === 'members') {
+                const registrations = await getDb('registrations');
+                const groups = await getDb('committeeGroups');
+                populateDropdown('memberName', registrations, 'name', 'id');
+                populateDropdown('memberCommitteeGroup', groups, 'communityName', 'id');
+                await renderMemberGroupboxes();
+            } else if (viewId === 'committee-payment') {
+                const groups = await getDb('committeeGroups');
+                populateDropdown('receivedGroup', groups, 'communityName', 'id');
+                document.getElementById('receivedName').innerHTML = '<option value="">-- Select Group First --</option>';
+                await renderCPGroupboxes();
+            } else if (viewId === 'pay-request') {
+                const groups = await getDb('committeeGroups');
+                populateDropdown('payRequestGroup', groups, 'communityName', 'id');
+                document.getElementById('payRequestName').innerHTML = '<option value="">-- Select Group First --</option>';
+                await renderPRGroupboxes();
+            } else if (viewId === 'add-notice') {
+                const groups = await getDb('committeeGroups');
+                populateDropdown('noticeGroup', groups, 'communityName', 'id', true);
+                await renderNoticeTable();
+            } else if (viewId === 'finance-data') {
+                await showFinanceGroups();
+            } else if (viewId === 'profile-view') {
+                renderLockSection();
+            } else if (viewId === 'registration') {
+                await renderRegistrationTable();
+            } else if (viewId === 'committee-group') {
+                await renderCommitteeGroupTable();
+            }
+        }
+    }
+
+    menuItems.forEach(item => { item.addEventListener('click', () => showView(item.dataset.view)); });
+    backButtons.forEach(btn => btn.addEventListener('click', () => showView('menu-view')));
+    adminProfileIcon.addEventListener('click', () => showView('profile-view'));
+
+    // --- PIN and other logic (largely unchanged, but data ops are now async) ---
+    function renderLockSection() {
+        // This uses localStorage, which is fine for client-side settings like PINs
+        const lockSection = document.getElementById('lock-section');
+        const currentPin = localStorage.getItem('adminPin');
+        if (currentPin) { lockSection.innerHTML = `<div class="form-group"><label for="oldPin">Old PIN</label><input type="password" id="oldPin"></div><div class="form-group"><label for="newPin">New PIN</label><input type="password" id="newPin"></div><div class="form-group"><label for="confirmNewPin">Confirm New PIN</label><input type="password" id="confirmNewPin"></div><button id="changePinBtn" class="btn btn-primary">Change PIN</button>`; document.getElementById('changePinBtn').addEventListener('click', handleChangePin); } else { lockSection.innerHTML = `<p>Set a PIN to protect Edit and Delete actions.</p><div class="form-group"><label for="createPin">New PIN</label><input type="password" id="createPin"></div><div class="form-group"><label for="confirmCreatePin">Confirm PIN</label><input type="password" id="confirmCreatePin"></div><button id="generatePinBtn" class="btn btn-primary">Generate PIN</button>`; document.getElementById('generatePinBtn').addEventListener('click', handleGeneratePin); }
+    }
+    function handleGeneratePin() { const newPin = document.getElementById('createPin').value; const confirmPin = document.getElementById('confirmCreatePin').value; if (!newPin || newPin !== confirmPin) { alert('PINs do not match or are empty.'); return; } localStorage.setItem('adminPin', newPin); alert('PIN created successfully!'); renderLockSection(); }
+    function handleChangePin() { const oldPin = document.getElementById('oldPin').value; const newPin = document.getElementById('newPin').value; const confirmNewPin = document.getElementById('confirmNewPin').value; const storedPin = localStorage.getItem('adminPin'); if (oldPin !== storedPin) { alert('Incorrect old PIN.'); return; } if (!newPin || newPin !== confirmNewPin) { alert('New PINs do not match or are empty.'); return; } localStorage.setItem('adminPin', newPin); alert('PIN changed successfully!'); renderLockSection(); }
+    function checkPin() { const storedPin = localStorage.getItem('adminPin'); if (!storedPin) return true; const enteredPin = prompt('Please enter your admin PIN to proceed:'); if (enteredPin === storedPin) { return true; } else { alert('Incorrect PIN. Action cancelled.'); return false; } }
+
+    window.showFinanceGroups = async (searchTerm = '') => {
+        document.querySelectorAll('#finance-data > .finance-sub-view').forEach(d => d.style.display = 'none');
+        document.getElementById('finance-groups-view').style.display = 'block';
+        const container = document.getElementById('finance-group-list');
+        container.innerHTML = '';
+        const groups = (await getDb('committeeGroups')).filter(g => g.communityName.toLowerCase().includes(searchTerm.toLowerCase()));
+        if (groups.length === 0) { container.innerHTML = '<p>No committee groups found.</p>'; }
+        groups.forEach(group => {
+            const item = document.createElement('div');
+            item.className = 'list-item';
+            item.textContent = group.communityName;
+            item.onclick = () => showFinanceMembers(group.id, group.communityName);
+            container.appendChild(item);
+        });
+    }
+    
+    window.showFinanceMembers = async (groupId, groupName, searchTerm = '') => {
+        currentFinanceGroupId = groupId;
+        document.getElementById('finance-members-title').textContent = `Members in: ${groupName}`;
+        let membersInGroup = (await getDb('members')).filter(m => m.memberCommitteeGroup == groupId);
+        const allUsers = await getDb('registrations');
+        if (searchTerm) {
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            membersInGroup = membersInGroup.filter(m => {
+                const memberInfo = allUsers.find(u => u.id == m.memberName);
+                return memberInfo && (memberInfo.name.toLowerCase().includes(lowerSearchTerm) || memberInfo.idNo.toLowerCase().includes(lowerSearchTerm));
+            });
+        }
+        const listContainer = document.getElementById('finance-member-list');
+        listContainer.innerHTML = '';
+        if (membersInGroup.length === 0) { listContainer.innerHTML = '<p>No members found.</p>'; }
+        membersInGroup.forEach(membership => {
+            const memberInfo = allUsers.find(u => u.id == membership.memberName);
+            if (memberInfo) {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.textContent = `${memberInfo.name} (ID: ${memberInfo.idNo})`;
+                item.onclick = () => showFinanceMemberDetails(memberInfo.id, groupId, memberInfo.name, groupName);
+                listContainer.appendChild(item);
+            }
+        });
+        document.querySelectorAll('#finance-data > .finance-sub-view').forEach(d => d.style.display = 'none');
+        document.getElementById('finance-members-view').style.display = 'block';
+    }
+    
+    window.goBackToMembers = async () => { 
+        const group = (await getDb('committeeGroups')).find(g => g.id == currentFinanceGroupId); 
+        await showFinanceMembers(currentFinanceGroupId, group.communityName); 
+    }
+
+    window.showFinanceMemberDetails = async (userId, groupId, memberName, groupName) => {
+        document.getElementById('finance-details-title').textContent = `Data for ${memberName} in ${groupName}`;
+        const contentContainer = document.getElementById('finance-details-content');
+        let contentHTML = '<h4>Committee Payment</h4>';
+        const receivedData = (await getDb('committeeReceived')).filter(r => r.receivedName == userId && r.receivedGroup == groupId);
+        if (receivedData.length > 0) { let table = '<div class="table-container"><table><thead><tr><th>CMT NO.</th><th>Committee Amt</th><th>Received Amt</th><th>Loss Amt</th><th>Date</th><th>PAYABLE COMMITTEE</th><th>Status</th></tr></thead><tbody>'; receivedData.forEach(item => { table += `<tr><td>${item.serialNo||'N/A'}</td><td>${item.committeeAmount||'N/A'}</td><td>${item.receivedAmount||'N/A'}</td><td>${item.lossAmount||'N/A'}</td><td>${formatDate(item.receivedDate)}</td><td>${item.payableComplete||'N/A'}</td><td>${item.paymentStatus||'N/A'}</td></tr>`; }); contentHTML += table + '</tbody></table></div>';
+        } else { contentHTML += '<p>No committee payment data found.</p>'; }
+        contentHTML += '<hr><h4>Pay Requests</h4>';
+        const payRequestData = (await getDb('payRequests')).filter(r => r.payRequestName == userId && r.payRequestGroup == groupId);
+        if (payRequestData.length > 0) { let table = '<div class="table-container"><table><thead><tr><th>CMT NO.</th><th>Share Value</th><th>Payment Amt</th><th>Benefits</th><th>Request Date</th><th>Due Date</th><th>Status</th></tr></thead><tbody>'; payRequestData.forEach(item => { table += `<tr><td>${item.serialNo||'N/A'}</td><td>${item.payRequestShare||'N/A'}</td><td>${item.paymentAmount||'N/A'}</td><td>${item.benefits||'N/A'}</td><td>${formatDate(item.requestDate)}</td><td>${formatDate(item.dueDate)}</td><td>${item.paymentStatus||'N/A'}</td></tr>`; }); contentHTML += table + '</tbody></table></div>';
+        } else { contentHTML += '<p>No pay request data found.</p>'; }
+        contentHTML += `<button id="finance-pdf-download" class="btn btn-primary" style="width:auto; margin-top:20px;">Download as PDF</button>`; 
+        contentContainer.innerHTML = contentHTML;
+        document.getElementById('finance-pdf-download').onclick = () => downloadFinanceDataAsPDF(userId, groupId, memberName, groupName);
+        document.querySelectorAll('#finance-data > .finance-sub-view').forEach(d => d.style.display = 'none');
+        document.getElementById('finance-details-view').style.display = 'block';
+    }
+
+    const downloadFinanceDataAsPDF = (userId, groupId, memberName, groupName) => { /* PDF Logic remains the same */ }
+
+    async function renderTable(dbKey, tableId, columns, searchInputId) {
+        const db = await getDb(dbKey);
+        const tableBody = document.querySelector(`#${tableId} tbody`);
+        const searchTerm = searchInputId ? document.getElementById(searchInputId).value.toLowerCase() : '';
+        tableBody.innerHTML = '';
+        const filteredDb = db.filter(item => {
+            if (!item) return false; // Handle potential null entries in arrays from Firebase
+            if (!searchInputId) return true;
+            return Object.values(item).some(val => String(val).toLowerCase().includes(searchTerm));
+        });
+        filteredDb.forEach(item => {
+            if(!item) return;
+            const row = document.createElement('tr');
+            columns.forEach(col => {
+                const cell = document.createElement('td');
+                let value = item[col.key] || '';
+                if (['startDate', 'closingDate'].includes(col.key)) { value = formatDate(value); }
+                cell.textContent = value; 
+                row.appendChild(cell);
+            });
+            const actionsCell = document.createElement('td'); actionsCell.classList.add('action-buttons');
+            actionsCell.innerHTML = `<button class="btn btn-edit" onclick="editItem('${dbKey}', ${item.id})">Edit</button><button class="btn btn-danger" onclick="deleteItem('${dbKey}', ${item.id})">Delete</button>`;
+            row.appendChild(actionsCell); tableBody.appendChild(row);
+        });
+    }
+
+    window.deleteItem = async function(dbKey, id) {
+        if (!checkPin()) return;
+        if (confirm('Are you sure you want to delete this item?')) {
+            if (dbKey === 'registrations') {
+                const userId = id;
+                let membersDb = await getDb('members'); membersDb = membersDb.filter(m => m.memberName != userId); await setDb('members', membersDb);
+                let receivedDb = await getDb('committeeReceived'); receivedDb = receivedDb.filter(r => r.receivedName != userId); await setDb('committeeReceived', receivedDb);
+                let requestsDb = await getDb('payRequests'); requestsDb = requestsDb.filter(r => r.payRequestName != userId); await setDb('payRequests', requestsDb);
+            }
+            let db = await getDb(dbKey); db = db.filter(item => item && item.id !== id); await setDb(dbKey, db); 
+            await refreshAllTables();
+        }
+    }
+    
+    window.editItem = async function(dbKey, id) {
+        if (!checkPin()) return;
+        let db = await getDb(dbKey); const item = db.find(i => i.id === id); if (!item) return;
+        const viewIdMap = { registrations: 'registration', committeeGroups: 'committee-group', members: 'members', committeeReceived: 'committee-payment', payRequests: 'pay-request', notices: 'add-notice' };
+        const viewId = viewIdMap[dbKey];
+        showContent(viewId, 'form-container');
+        switch (dbKey) {
+            case 'registrations': document.getElementById('regEditId').value = id; document.getElementById('name').value = item.name; document.getElementById('idNo').value = item.idNo; document.getElementById('mobileNo').value = item.mobileNo; document.getElementById('password').required = false; document.getElementById('confirmPassword').required = false; break;
+            case 'committeeGroups': document.getElementById('groupEditId').value = id; document.getElementById('communityName').value = item.communityName; document.getElementById('committeeMonth').value = item.month; document.getElementById('startDate').value = item.startDate; document.getElementById('totalAmount').value = item.totalAmount; document.getElementById('shareValue').value = item.shareValue; document.getElementById('closingDate').value = item.closingDate; break;
+            case 'members': document.getElementById('memberEditId').value = id; document.getElementById('memberName').value = item.memberName; document.getElementById('memberCommitteeGroup').value = item.memberCommitteeGroup; break;
+            case 'committeeReceived': document.getElementById('receivedEditId').value = id; document.getElementById('receivedSerialNo').value = item.serialNo; document.getElementById('receivedGroup').value = item.receivedGroup; document.getElementById('committeeAmount').value = item.committeeAmount; document.getElementById('receivedAmount').value = item.receivedAmount; document.getElementById('lossAmount').value = item.lossAmount; document.getElementById('receivedDate').value = item.receivedDate; document.getElementById('payableComplete').value = item.payableComplete; document.getElementById('receivedPaymentStatus').value = item.paymentStatus; await populateFilteredNames(item.receivedGroup, 'receivedName'); document.getElementById('receivedName').value = item.receivedName; break;
+            case 'payRequests': document.getElementById('payRequestEditId').value = id; document.getElementById('payRequestSerialNo').value = item.serialNo; document.getElementById('payRequestGroup').value = item.payRequestGroup; document.getElementById('payRequestShare').value = item.payRequestShare; document.getElementById('paymentAmount').value = item.paymentAmount; document.getElementById('benefits').value = item.benefits; document.getElementById('requestDate').value = item.requestDate; document.getElementById('dueDate').value = item.dueDate; document.getElementById('payRequestPaymentStatus').value = item.paymentStatus; await populateFilteredNames(item.payRequestGroup, 'payRequestName'); document.getElementById('payRequestName').value = item.payRequestName; break;
+            case 'notices': document.getElementById('noticeEditId').value = id; document.getElementById('noticeGroup').value = item.noticeGroup; document.getElementById('noticeMessage').value = item.noticeMessage; break;
+        }
+    }
+
+    function populateDropdown(selectId, data, textField, valueField, addAllOption = false) {
+        const select = document.getElementById(selectId); select.innerHTML = '<option value="">-- Select --</option>';
+        if (addAllOption) { select.innerHTML += '<option value="all">All Groups</option>'; }
+        data.forEach(item => { if(item) select.innerHTML += `<option value="${item[valueField]}">${item[textField]}</option>`; });
+    }
+    
+    async function populateFilteredNames(groupId, nameDropdownId) {
+        const nameDropdown = document.getElementById(nameDropdownId);
+        nameDropdown.innerHTML = '<option value="">-- Select Name --</option>';
+        if (!groupId) return;
+        const allMembers = await getDb('members');
+        const allRegistrations = await getDb('registrations');
+        const memberIdsInGroup = allMembers.filter(m => m.memberCommitteeGroup == groupId).map(m => String(m.memberName));
+        const membersDetails = allRegistrations.filter(r => r && memberIdsInGroup.includes(String(r.id)));
+        membersDetails.forEach(member => { nameDropdown.innerHTML += `<option value="${member.id}">${member.name}</option>`; });
+    }
+    
+    document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const mobile = document.getElementById('mobileNo').value; const editId = document.getElementById('regEditId').value;
+        const registrations = await getDb('registrations');
+        const isDuplicate = registrations.some(user => user && user.mobileNo === mobile && user.id != editId);
+        if (isDuplicate) { alert('Mobile number is already registered.'); return; }
+        const password = document.getElementById('password').value; 
+        const id = document.getElementById('regEditId').value;
+        if (!id && !password) { alert('Password is required for new registration.'); document.getElementById('password').required = true; document.getElementById('confirmPassword').required = true; return; }
+        if (password && password !== document.getElementById('confirmPassword').value) { alert('Passwords do not match!'); return; }
+        let db = await getDb('registrations');
+        if (id) {
+            const index = db.findIndex(item => item && item.id == id);
+            if (index > -1) {
+                db[index].name = document.getElementById('name').value;
+                db[index].idNo = document.getElementById('idNo').value;
+                db[index].mobileNo = document.getElementById('mobileNo').value;
+                if(password) db[index].password = password;
+            }
+        } else {
+            const data = { id: Date.now(), name: document.getElementById('name').value, idNo: document.getElementById('idNo').value, mobileNo: document.getElementById('mobileNo').value, password: password };
+            db.push(data);
+        }
+        await setDb('registrations', db); 
+        await renderRegistrationTable(); 
+        showContent('registration', 'list-container');
+    });
+    
+    document.getElementById('committeeGroupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('groupEditId').value;
+        const data = { id: id ? Number(id) : Date.now(), communityName: document.getElementById('communityName').value, month: document.getElementById('committeeMonth').value, startDate: document.getElementById('startDate').value, totalAmount: document.getElementById('totalAmount').value, shareValue: document.getElementById('shareValue').value, closingDate: document.getElementById('closingDate').value };
+        let db = await getDb('committeeGroups');
+        if(id) { const index = db.findIndex(item => item && item.id == id); if (index > -1) db[index] = data; } else { db.push(data); }
+        await setDb('committeeGroups', db);
+        await renderCommitteeGroupTable();
+        showContent('committee-group', 'list-container');
+    });
+
+    document.getElementById('membersForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('memberEditId').value;
+        const data = { id: id ? Number(id) : Date.now(), memberName: document.getElementById('memberName').value, memberCommitteeGroup: document.getElementById('memberCommitteeGroup').value };
+        let db = await getDb('members');
+        if(id) { const index = db.findIndex(item => item && item.id == id); if (index > -1) db[index] = data; } else { db.push(data); }
+        await setDb('members', db);
+        await renderMemberGroupboxes();
+        showContent('members', 'list-container');
+    });
+    
+    document.getElementById('committeeReceivedForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); 
+        const id = document.getElementById('receivedEditId').value;
+        const committeePaymentData = { 
+            id: id ? Number(id) : Date.now(), 
+            serialNo: document.getElementById('receivedSerialNo').value, 
+            receivedName: document.getElementById('receivedName').value, 
+            receivedGroup: document.getElementById('receivedGroup').value, 
+            committeeAmount: document.getElementById('committeeAmount').value, 
+            lossAmount: document.getElementById('lossAmount').value, 
+            receivedAmount: document.getElementById('receivedAmount').value, 
+            receivedDate: document.getElementById('receivedDate').value, 
+            payableComplete: document.getElementById('payableComplete').value, 
+            paymentStatus: document.getElementById('receivedPaymentStatus').value 
+        };
+        let db = await getDb('committeeReceived');
+        if (id) { 
+            const index = db.findIndex(item => item && item.id == id); 
+            if (index > -1) db[index] = committeePaymentData; 
+        } else { 
+            db.push(committeePaymentData); 
+        }
+        await setDb('committeeReceived', db);
+        
+        if (!id) {
+            const allGroups = await getDb('committeeGroups'); 
+            const targetGroup = allGroups.find(g => g.id == committeePaymentData.receivedGroup);
+            if (!targetGroup || !targetGroup.month || parseFloat(targetGroup.month) <= 0) { 
+                alert("Could not generate pay requests. The selected group is missing a valid 'Month' value."); 
+            } else {
+                const allMembers = await getDb('members'); 
+                const membersInGroup = allMembers.filter(m => m.memberCommitteeGroup == committeePaymentData.receivedGroup); 
+                const payRequestsDb = await getDb('payRequests'); 
+                const lossAmount = parseFloat(committeePaymentData.lossAmount); 
+                const groupMonth = parseFloat(targetGroup.month); 
+                const shareValue = parseFloat(targetGroup.shareValue); 
+                const benefits = lossAmount / groupMonth; 
+                const paymentAmount = benefits - shareValue; 
+                const dateObj = new Date(committeePaymentData.receivedDate); 
+                dateObj.setDate(dateObj.getDate() + 6); 
+                const dueDate = dateObj.toISOString().split('T')[0];
+                
+                membersInGroup.forEach(member => {
+                    const newRequest = { 
+                        id: Date.now() + Math.random(), 
+                        serialNo: committeePaymentData.serialNo, 
+                        payRequestName: member.memberName, 
+                        payRequestGroup: committeePaymentData.receivedGroup, 
+                        payRequestShare: shareValue, 
+                        paymentAmount: Math.abs(paymentAmount).toFixed(2), 
+                        benefits: benefits.toFixed(2), 
+                        requestDate: committeePaymentData.receivedDate, 
+                        dueDate: dueDate, 
+                        paymentStatus: 'Pending' 
+                    };
+                    payRequestsDb.push(newRequest);
+                });
+                await setDb('payRequests', payRequestsDb); 
+                alert(`${membersInGroup.length} pay requests have been automatically generated for group "${targetGroup.communityName}".`);
+            }
+        }
+        await renderCPGroupboxes(); 
+        await renderPRGroupboxes();
+        showContent('committee-payment', 'list-container');
+    });
+
+    document.getElementById('payRequestForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('payRequestEditId').value;
+        const data = { id: id ? Number(id) : Date.now(), serialNo: document.getElementById('payRequestSerialNo').value, payRequestName: document.getElementById('payRequestName').value, payRequestGroup: document.getElementById('payRequestGroup').value, payRequestShare: document.getElementById('payRequestShare').value, paymentAmount: document.getElementById('paymentAmount').value, benefits: document.getElementById('benefits').value, requestDate: document.getElementById('requestDate').value, dueDate: document.getElementById('dueDate').value, paymentStatus: document.getElementById('payRequestPaymentStatus').value };
+        let db = await getDb('payRequests');
+        if(id) { const index = db.findIndex(item => item && item.id == id); if (index > -1) db[index] = data; } else { db.push(data); }
+        await setDb('payRequests', db);
+        await renderPRGroupboxes();
+        showContent('pay-request', 'list-container');
+    });
+    
+    document.getElementById('noticeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('noticeEditId').value;
+        const data = {id: id ? Number(id) : Date.now(), noticeGroup: document.getElementById('noticeGroup').value, noticeMessage: document.getElementById('noticeMessage').value };
+        let db = await getDb('notices');
+        if(id) { const index = db.findIndex(item => item && item.id == id); if (index > -1) db[index] = data; } else { db.push(data); }
+        await setDb('notices', db);
+        await renderNoticeTable();
+        showContent('add-notice', 'list-container');
+    });
+
+    const receivedGroupSelect = document.getElementById('receivedGroup');
+    const committeeAmountInput = document.getElementById('committeeAmount');
+    const receivedAmountInput = document.getElementById('receivedAmount');
+    const lossAmountInput = document.getElementById('lossAmount');
+    
+    receivedGroupSelect.addEventListener('change', async () => {
+        const groupId = receivedGroupSelect.value;
+        await populateFilteredNames(groupId, 'receivedName');
+        if (groupId) { 
+            const groups = await getDb('committeeGroups');
+            const group = groups.find(g => g.id == groupId); 
+            committeeAmountInput.value = group ? group.totalAmount : ''; 
+        } else { 
+            committeeAmountInput.value = ''; 
+        }
+        calculateLoss();
+    });
+
+    function calculateLoss() { const committeeAmt = parseFloat(committeeAmountInput.value) || 0; const receivedAmt = parseFloat(receivedAmountInput.value) || 0; lossAmountInput.value = committeeAmt - receivedAmt; }
+    committeeAmountInput.addEventListener('input', calculateLoss);
+    receivedAmountInput.addEventListener('input', calculateLoss);
+    const payRequestGroupSelect = document.getElementById('payRequestGroup');
+    payRequestGroupSelect.addEventListener('change', () => { populateFilteredNames(payRequestGroupSelect.value, 'payRequestName'); });
+
+    const renderRegistrationTable = async () => await renderTable('registrations', 'registrationTable', [{key:'name'}, {key:'idNo'}, {key:'mobileNo'}, {key:'password'}], 'regSearch');
+    const renderCommitteeGroupTable = async () => await renderTable('committeeGroups', 'committeeGroupTable', [{key:'communityName'}, {key:'month'}, {key:'startDate'}, {key:'totalAmount'}, {key:'shareValue'}, {key:'closingDate'}], 'groupSearch');
+    const renderNoticeTable = async () => await renderTable('notices', 'noticeTable', [{key:'noticeGroup'}, {key:'noticeMessage'}], null);
+
+    window.renderMemberGroupboxes = async (searchTerm = '') => {
+        const container = document.getElementById('member-group-box-container'); container.innerHTML = '';
+        const allGroups = (await getDb('committeeGroups')).filter(g => g.communityName.toLowerCase().includes(searchTerm.toLowerCase()));
+        if (allGroups.length === 0) { container.innerHTML = '<p>No groups found.</p>'; return; }
+        const allMembers = await getDb('members');
+        allGroups.forEach(group => {
+            if (allMembers.some(m => m && m.memberCommitteeGroup == group.id)) {
+                const box = document.createElement('div'); box.className = 'list-item'; box.textContent = group.communityName;
+                box.onclick = () => showMemberDetailsView(group.id, group.communityName);
+                container.appendChild(box);
+            }
+        });
+    }
+    
+    window.showMemberDetailsView = async (groupId, groupName, searchTerm = '') => {
+        currentMemberGroupId = groupId; currentMemberGroupName = groupName;
+        document.getElementById('members-details-title').textContent = `Members in: ${groupName}`;
+        const tableContainer = document.getElementById('members-details-table');
+        const allMembers = await getDb('members'); const allRegistrations = await getDb('registrations');
+        let membersInGroup = allMembers.filter(m => m && m.memberCommitteeGroup == groupId);
+        
+        if(searchTerm) {
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            membersInGroup = membersInGroup.filter(item => {
+                const info = allRegistrations.find(r => r && r.id == item.memberName);
+                return info && (info.name.toLowerCase().includes(lowerSearchTerm) || info.idNo.toLowerCase().includes(lowerSearchTerm));
+            });
+        }
+        let tableRows = '';
+        membersInGroup.forEach(item => {
+            if(!item) return;
+            const memberInfo = allRegistrations.find(r => r && r.id == item.memberName);
+            if (memberInfo) { tableRows += `<tr><td>${memberInfo.name}</td><td>${memberInfo.idNo}</td><td class="action-buttons"><button class="btn btn-edit" onclick="editItem('members', ${item.id})">Edit</button><button class="btn btn-danger" onclick="deleteItem('members', ${item.id})">Delete</button></td></tr>`; }
+        });
+        tableContainer.innerHTML = `<table><thead><tr><th>NAME</th><th>ID NO.</th><th>Actions</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+        document.getElementById('download-members-pdf-btn').onclick = () => downloadMembersAsPDF(groupId, groupName);
+        showContent('members', 'details-sub-view');
+    }
+    window.downloadMembersAsPDF = async (groupId, groupName) => {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFontSize(22); doc.text("SAMEER FINANCE", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+        doc.setFontSize(16); doc.text(`MEMBER LIST`, doc.internal.pageSize.getWidth() / 2, 30, { align: 'center' });
+        doc.setFontSize(12); doc.text(`Group: ${groupName}`, 14, 40);
+        const members = await getDb('members');
+        const registrations = await getDb('registrations');
+        const tableBody = members.filter(m => m && m.memberCommitteeGroup == groupId).map(item => {
+            const memberInfo = registrations.find(r => r && r.id == item.memberName);
+            return [memberInfo ? memberInfo.name : 'N/A', memberInfo ? memberInfo.idNo : 'N/A'];
+        });
+        doc.autoTable({ startY: 45, head: [['NAME', 'ID NO.']], body: tableBody, theme: 'grid', headStyles: { fillColor: [41, 128, 185] }});
+        doc.save(`${groupName}_Members_List.pdf`);
+    }
+
+    window.renderCPGroupboxes = async (searchTerm = '') => {
+        const container = document.getElementById('cp-group-box-container'); container.innerHTML = '';
+        const allGroups = (await getDb('committeeGroups')).filter(g => g.communityName.toLowerCase().includes(searchTerm.toLowerCase()));
+        if (allGroups.length === 0) { container.innerHTML = '<p>No groups found.</p>'; return; }
+        const allPayments = await getDb('committeeReceived');
+        allGroups.forEach(group => {
+            if (allPayments.some(p => p && p.receivedGroup == group.id)) {
+                const box = document.createElement('div'); box.className = 'list-item'; box.textContent = group.communityName;
+                box.onclick = () => showCPDetailsView(group.id, group.communityName);
+                container.appendChild(box);
+            }
+        });
+    }
+
+    window.showCPDetailsView = async (groupId, groupName, searchTerm = '') => {
+        currentCPGroupId = groupId; currentCPGroupName = groupName;
+        document.getElementById('cp-details-title').textContent = `Payments in: ${groupName}`;
+        const monthContainer = document.getElementById('cp-month-box-container');
+        const allPayments = await getDb('committeeReceived');
+        let paymentsInGroup = allPayments.filter(p => p && p.receivedGroup == groupId);
+        
+        let monthNumbers = [...new Set(paymentsInGroup.map(p => p.serialNo))];
+        if(searchTerm) {
+            monthNumbers = monthNumbers.filter(month => String(month).includes(searchTerm));
+        }
+        monthNumbers.sort((a,b) => Number(a) - Number(b));
+
+        monthContainer.innerHTML = '';
+        if (monthNumbers.length === 0) { monthContainer.innerHTML = '<p>No records found for this month.</p>'; }
+        monthNumbers.forEach(month => {
+            const box = document.createElement('div');
+            box.className = 'list-item';
+            box.textContent = `Month: ${month}`;
+            box.onclick = () => showCPMonthDetails(groupId, groupName, month);
+            monthContainer.appendChild(box);
+        });
+        showContent('committee-payment', 'month-list-view');
+    }
+
+    window.showCPMonthDetails = async (groupId, groupName, month) => {
+        document.getElementById('cp-month-details-title').textContent = `Payments in ${groupName} for Month: ${month}`;
+        const tableContainer = document.getElementById('cp-month-details-table');
+        const allPayments = await getDb('committeeReceived'); const allRegistrations = await getDb('registrations');
+        let paymentsInMonth = allPayments.filter(p => p && p.receivedGroup == groupId && p.serialNo == month);
+        let rows = '';
+        paymentsInMonth.forEach(item => { 
+            const member = allRegistrations.find(r => r && r.id == item.receivedName); 
+            if(member) rows += `<tr><td>${member.name}</td><td>${item.committeeAmount}</td><td>${item.receivedAmount}</td><td>${item.lossAmount}</td><td>${formatDate(item.receivedDate)}</td><td>${item.payableComplete}</td><td>${item.paymentStatus}</td><td class="action-buttons"><button class="btn btn-edit" onclick="editItem('committeeReceived', ${item.id})">Edit</button><button class="btn btn-danger" onclick="deleteItem('committeeReceived', ${item.id})">Delete</button></td></tr>`; 
+        });
+        tableContainer.innerHTML = `<table><thead><tr><th>NAME</th><th>CMT AMT</th><th>RCVD AMT</th><th>LOSS AMT</th><th>DATE</th><th>PAYABLE CMT</th><th>STATUS</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+        showContent('committee-payment', 'month-details-view');
+    }
+
+    window.renderPRGroupboxes = async (searchTerm = '') => {
+        const container = document.getElementById('pr-group-box-container'); container.innerHTML = '';
+        const allGroups = (await getDb('committeeGroups')).filter(g => g.communityName.toLowerCase().includes(searchTerm.toLowerCase()));
+        if (allGroups.length === 0) { container.innerHTML = '<p>No groups found.</p>'; return; }
+        const allRequests = await getDb('payRequests');
+        allGroups.forEach(group => {
+            if (allRequests.some(p => p && p.payRequestGroup == group.id)) {
+                 const box = document.createElement('div'); box.className = 'list-item'; box.textContent = group.communityName;
+                box.onclick = () => showPRDetailsView(group.id, group.communityName);
+                container.appendChild(box);
+            }
+        });
+    }
+
+    window.showPRDetailsView = async (groupId, groupName, searchTerm = '') => {
+        currentPRGroupId = groupId; currentPRGroupName = groupName;
+        document.getElementById('pr-details-title').textContent = `Requests in: ${groupName}`;
+        const monthContainer = document.getElementById('pr-month-box-container');
+        const allRequests = await getDb('payRequests');
+        let requestsInGroup = allRequests.filter(p => p && p.payRequestGroup == groupId);
+        
+        let monthNumbers = [...new Set(requestsInGroup.map(p => p.serialNo))];
+        if(searchTerm) {
+             monthNumbers = monthNumbers.filter(month => String(month).includes(searchTerm));
+        }
+        monthNumbers.sort((a,b) => Number(a) - Number(b));
+
+        monthContainer.innerHTML = '';
+        if(monthNumbers.length === 0){ monthContainer.innerHTML = '<p>No records found for this month.</p>';}
+        monthNumbers.forEach(month => {
+            const box = document.createElement('div');
+            box.className = 'list-item';
+            box.textContent = `Month: ${month}`;
+            box.onclick = () => showPRMonthDetails(groupId, groupName, month);
+            monthContainer.appendChild(box);
+        });
+        showContent('pay-request', 'month-list-view');
+    }
+
+    window.showPRMonthDetails = async (groupId, groupName, month) => {
+        document.getElementById('pr-month-details-title').textContent = `Requests in ${groupName} for Month: ${month}`;
+        const tableContainer = document.getElementById('pr-month-details-table');
+        const allRequests = await getDb('payRequests'); const allRegistrations = await getDb('registrations');
+        let requestsInMonth = allRequests.filter(p => p && p.payRequestGroup == groupId && p.serialNo == month);
+        let rows = '';
+        requestsInMonth.forEach(item => { 
+            const member = allRegistrations.find(r => r && r.id == item.payRequestName); 
+            if(member) rows += `<tr><td>${member.name}</td><td>${item.payRequestShare}</td><td>${item.paymentAmount}</td><td>${item.benefits}</td><td>${formatDate(item.requestDate)}</td><td>${formatDate(item.dueDate)}</td><td>${item.paymentStatus}</td><td class="action-buttons"><button class="btn btn-edit" onclick="editItem('payRequests', ${item.id})">Edit</button><button class="btn btn-danger" onclick="deleteItem('payRequests', ${item.id})">Delete</button></td></tr>`; 
+        });
+        tableContainer.innerHTML = `<table><thead><tr><th>NAME</th><th>SHARE</th><th>PAYMENT AMT</th><th>BENEFITS</th><th>REQ DATE</th><th>DUE DATE</th><th>STATUS</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+        showContent('pay-request', 'month-details-view');
+    }
+
+    async function refreshAllTables() {
+        await renderRegistrationTable(); 
+        await renderCommitteeGroupTable(); 
+        await renderMemberGroupboxes();
+        await renderCPGroupboxes(); 
+        await renderPRGroupboxes(); 
+        await renderNoticeTable();
+    }
+    
+    document.getElementById('regSearch').addEventListener('keyup', renderRegistrationTable);
+    document.getElementById('groupSearch').addEventListener('keyup', renderCommitteeGroupTable);
+    document.getElementById('memberSearch').addEventListener('keyup', (e) => renderMemberGroupboxes(e.target.value));
+    document.getElementById('receivedSearch').addEventListener('keyup', (e) => renderCPGroupboxes(e.target.value));
+    document.getElementById('payRequestSearch').addEventListener('keyup', (e) => renderPRGroupboxes(e.target.value));
+    document.getElementById('memberDetailSearch').addEventListener('keyup', (e) => showMemberDetailsView(currentMemberGroupId, currentMemberGroupName, e.target.value));
+    document.getElementById('cpDetailSearch').addEventListener('keyup', (e) => showCPDetailsView(currentCPGroupId, currentCPGroupName, e.target.value));
+    document.getElementById('prDetailSearch').addEventListener('keyup', (e) => showPRDetailsView(currentPRGroupId, currentPRGroupName, e.target.value));
+    document.getElementById('financeGroupSearch').addEventListener('keyup', (e) => showFinanceGroups(e.target.value));
+    document.getElementById('financeMemberSearch').addEventListener('keyup', async (e) => {
+        const groups = await getDb('committeeGroups');
+        const group = groups.find(g => g.id == currentFinanceGroupId);
+        if (group) { await showFinanceMembers(currentFinanceGroupId, group.communityName, e.target.value); }
+    });
+
+    showView('menu-view');
+    await refreshAllTables();
+});
+</script>
+
+</body>
+</html>
